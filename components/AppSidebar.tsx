@@ -36,13 +36,15 @@ export default function AppSidebar({
             height={80}
             className="mx-auto"
           />
-          <h1 className="text-sm font-semibold mt-2 leading-tight">
-            สำนักงานชลประทานที่ 4
-            <br />
-            <span className="text-xs opacity-70">
-              Regional Irrigation Office 4
-            </span>
-          </h1>
+          {!collapsed && (
+            <h1 className="text-sm font-semibold mt-2 leading-tight">
+              สำนักงานชลประทานที่ 4
+              <br />
+              <span className="text-xs opacity-70">
+                Regional Irrigation Office 4
+              </span>
+            </h1>
+          )}
         </div>
         <SidebarSection>
           <Link href="/" className="rounded-lg">
