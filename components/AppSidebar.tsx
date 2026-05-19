@@ -49,22 +49,22 @@ export default function AppSidebar({ collapsed }: { collapsed: boolean }) {
 
           <SidebarItem>
             <DocumentIcon className="group h-5 w-5" />
-            <SidebarLabel collapsed={collapsed}>สรุปรายงานข่าว</SidebarLabel>
+            <SidebarLabel collapsed={collapsed}>สรุปรายงานข่าว(PR)</SidebarLabel>
           </SidebarItem>
 
           <SidebarItem>
             <DocumentTextIcon className="group h-5 w-5" />
-            <SidebarLabel collapsed={collapsed}>ไปราชการ</SidebarLabel>
+            <SidebarLabel collapsed={collapsed}>ไปราชการ(ชป.318)</SidebarLabel>
           </SidebarItem>
 
           <SidebarItem>
             <TruckIcon className="group h-5 w-5" />
-            <SidebarLabel collapsed={collapsed}>ขอใช้รถ</SidebarLabel>
+            <SidebarLabel collapsed={collapsed}>ขอใช้ยานพาหนะ(แบบ 3)</SidebarLabel>
           </SidebarItem>
 
           <SidebarItem>
             <CalculatorIcon className="group h-5 w-5" />
-            <SidebarLabel collapsed={collapsed}>ค่าใช้จ่าย</SidebarLabel>
+            <SidebarLabel collapsed={collapsed}>ค่าใช้จ่าย(ห้อง ปท.ชป.4)</SidebarLabel>
           </SidebarItem>
 
           <hr className="border-blue-400/30 my-3" />
