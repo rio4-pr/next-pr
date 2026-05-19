@@ -59,10 +59,12 @@ export default function AppSidebar({
             </SidebarItem>
           </Link>
 
-          <SidebarItem active={activePage === "travel"}>
-            <DocumentTextIcon className="group h-5 w-5" />
-            <SidebarLabel collapsed={collapsed}>ไปราชการ(ชป.318)</SidebarLabel>
-          </SidebarItem>
+          <Link href="/offduty" className="rounded-lg">
+            <SidebarItem active={activePage === "travel"}>
+              <DocumentTextIcon className="group h-5 w-5" />
+              <SidebarLabel collapsed={collapsed}>ไปราชการ(ชป.318)</SidebarLabel>
+            </SidebarItem>
+          </Link>
 
           <SidebarItem active={activePage === "vehicle"}>
             <TruckIcon className="group h-5 w-5" />
