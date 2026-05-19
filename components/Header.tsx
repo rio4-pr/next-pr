@@ -10,8 +10,10 @@ import Image from "next/image";
 
 export default function Header({
   toggle,
+  title = "Dashboard",
 }: {
   toggle: () => void;
+  title?: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -26,7 +28,7 @@ export default function Header({
           <Bars3Icon className="w-6 h-6 text-gray-700" />
         </button>
 
-        <h2 className="text-xl font-semibold">Dashboard</h2>
+        <h2 className="text-xl font-semibold">{title}</h2>
       </div>
 
       {/* 🔹 Right Menu */}

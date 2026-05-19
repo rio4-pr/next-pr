@@ -11,6 +11,7 @@ export function Sidebar({
     <div
       className={`
         ${collapsed ? "w-20" : "w-64"}
+        sticky top-0 self-start
         h-screen
         bg-gradient-to-b from-[#0B3C5D] to-[#0F4C81]
         text-white p-4

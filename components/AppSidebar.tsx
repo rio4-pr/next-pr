@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Sidebar,
   SidebarBody,
@@ -10,18 +11,20 @@ import {
 import {
   Cog6ToothIcon,
   HomeIcon,
-  MegaphoneIcon,
-  Square2StackIcon,
-  UserIcon,
   TruckIcon,
   CalculatorIcon,
   ArrowRightStartOnRectangleIcon,
   DocumentTextIcon,
   DocumentIcon,
-  BellIcon,
 } from "@heroicons/react/20/solid";
 
-export default function AppSidebar({ collapsed }: { collapsed: boolean }) {
+export default function AppSidebar({
+  collapsed,
+  activePage = "dashboard",
+}: {
+  collapsed: boolean;
+  activePage?: string;
+}) {
   return (
     <Sidebar collapsed={collapsed}>
       <SidebarBody>
@@ -42,27 +45,31 @@ export default function AppSidebar({ collapsed }: { collapsed: boolean }) {
           </h1>
         </div>
         <SidebarSection>
-          <SidebarItem active>
-            <HomeIcon className="group h-5 w-5" />
-            <SidebarLabel collapsed={collapsed}>Dashboard</SidebarLabel>
-          </SidebarItem>
+          <Link href="/" className="rounded-lg">
+            <SidebarItem active={activePage === "dashboard"}>
+              <HomeIcon className="group h-5 w-5" />
+              <SidebarLabel collapsed={collapsed}>Dashboard</SidebarLabel>
+            </SidebarItem>
+          </Link>
 
-          <SidebarItem>
-            <DocumentIcon className="group h-5 w-5" />
-            <SidebarLabel collapsed={collapsed}>สรุปรายงานข่าว(PR)</SidebarLabel>
-          </SidebarItem>
+          <Link href="/newsreport" className="rounded-lg">
+            <SidebarItem active={activePage === "newsreport"}>
+              <DocumentIcon className="group h-5 w-5" />
+              <SidebarLabel collapsed={collapsed}>สรุปรายงานข่าว(PR)</SidebarLabel>
+            </SidebarItem>
+          </Link>
 
-          <SidebarItem>
+          <SidebarItem active={activePage === "travel"}>
             <DocumentTextIcon className="group h-5 w-5" />
             <SidebarLabel collapsed={collapsed}>ไปราชการ(ชป.318)</SidebarLabel>
           </SidebarItem>
 
-          <SidebarItem>
+          <SidebarItem active={activePage === "vehicle"}>
             <TruckIcon className="group h-5 w-5" />
             <SidebarLabel collapsed={collapsed}>ขอใช้ยานพาหนะ(แบบ 3)</SidebarLabel>
           </SidebarItem>
 
-          <SidebarItem>
+          <SidebarItem active={activePage === "expense"}>
             <CalculatorIcon className="group h-5 w-5" />
             <SidebarLabel collapsed={collapsed}>ค่าใช้จ่าย(ห้อง ปท.ชป.4)</SidebarLabel>
           </SidebarItem>

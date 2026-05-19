@@ -6,6 +6,12 @@ import Chart from "@/components/Chart";
 import PieChart from "@/components/PieChart";
 import Card from "@/components/Card";
 import Header from "@/components/Header";
+import {
+  DocumentTextIcon,
+  BriefcaseIcon,
+  TruckIcon,
+  BanknotesIcon,
+} from "@heroicons/react/24/outline";
 
 export default function Home() {
   const [collapsed, setCollapsed] = useState(false);
@@ -27,10 +33,26 @@ export default function Home() {
 
           {/* 🔹 Cards */}
           <div className="grid grid-cols-4 gap-4">
-            <Card title="ข่าว" value={32} />
-            <Card title="ไปราชการ" value={18} />
-            <Card title="รถ" value={15} />
-            <Card title="ค่าใช้จ่าย" value={24} />
+            <Card
+              title="ข่าว"
+              value={32}
+              icon={<DocumentTextIcon className="w-10 h-10" />}
+            />
+            <Card
+              title="ไปราชการ"
+              value={18}
+              icon={<BriefcaseIcon className="w-10 h-10" />}
+            />
+            <Card
+              title="รถ"
+              value={15}
+              icon={<TruckIcon className="w-10 h-10" />}
+            />
+            <Card
+              title="ค่าใช้จ่าย"
+              value={24}
+              icon={<BanknotesIcon className="w-10 h-10" />}
+            />
           </div>
 
           {/* 🔹 Charts */}
