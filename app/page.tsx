@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import AppSidebar from "@/components/AppSidebar";
 import Chart from "@/components/Chart";
 import PieChart from "@/components/PieChart";
@@ -5,17 +8,19 @@ import Card from "@/components/Card";
 import Header from "@/components/Header";
 
 export default function Home() {
+  const [collapsed, setCollapsed] = useState(false);
+
   return (
     <div className="flex">
 
       {/* 🔹 Sidebar */}
-      <AppSidebar />
+       <AppSidebar collapsed={collapsed} />
 
       {/* 🔹 Main */}
       <div className="flex-1 bg-gray-100 min-h-screen">
 
         {/* 🔹 Header */}
-        <Header />
+        <Header toggle={() => setCollapsed(!collapsed)} />
 
         {/* 🔹 Content */}
         <div className="p-6 space-y-6">
