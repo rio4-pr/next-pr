@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import Link from "next/link";
 import AppSidebar from "@/components/AppSidebar";
@@ -37,7 +36,7 @@ const initialForm = {
   approverPosition: "นายช่างภาพ",
 };
 
-export default function NewOffDutyPage() {
+export default function CreatePage() {
   const [form, setForm] = useState(initialForm);
 
   const handleChange = (field: keyof typeof initialForm, value: string) => {
@@ -46,7 +45,7 @@ export default function NewOffDutyPage() {
 
   return (
     <div className="flex">
-      <AppSidebar collapsed={false} activePage="travel" />
+      <AppSidebar collapsed={false} activePage="offduty" />
 
       <div className="flex-1 bg-gray-100 min-h-screen">
         <Header toggle={() => {}} title="สร้างคำขอไปราชการ" />
