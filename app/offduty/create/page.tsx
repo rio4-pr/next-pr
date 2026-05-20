@@ -6,15 +6,15 @@ import Header from "@/components/Header";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 const initialForm = {
-  office: "สำนักงานชลประทานที่ 4",
-  date: "24 มิถุนายน 2568",
+  name: "สำนักงานชลประทานที่ 4",
+  position: "ช่างภาพ",
   amount: "2,060",
-  subject: "ขออนุมัติเบิกค่าใช้จ่ายในการเดินทางไปราชการ",
-  to: "อธิบดีกรมชลประทาน",
+  subject: "ขอฟฟอนุญาตไปราชการ",
+  to: "จังหวัด",
   order: "สขป4.01ธก(ขป318)/74/2568",
   orderDate: "17 มิถุนายน 2568",
   requester: "นายภาณุพงษ์ เชื้อดีสืบ",
-  position: "นายช่างภาพ",
+  positions: "นายช่างภาพ",
   department: "ส่วนบริหารทั่วไป สำนักงานชลประทานที่ 4",
   companion: "นายธนวินท์ จันบุญลี ตำแหน่ง เจ้าพนักงานเครื่องพนักงานคอมพิวเตอร์",
   travelPlace: "กรมชลประทานสามเสน และสชป.11",
@@ -67,8 +67,8 @@ export default function CreatePage() {
           <div className="grid gap-4 xl:grid-cols-2">
             <div className="bg-white rounded-3xl shadow p-6 space-y-5">
               <h2 className="text-lg font-semibold">ข้อมูลทั่วไป</h2>
-              <LabelInput label="ที่ทำการ" value={form.office} onChange={(value) => handleChange("office", value)} />
-              <LabelInput label="วันที่" value={form.date} onChange={(value) => handleChange("date", value)} />
+              <LabelInput label="ชื่อ-นามสกุล" value={form.name} onChange={(value) => handleChange("name", value)} />
+              <LabelInput label="ตำแหน่ง" value={form.position} onChange={(value) => handleChange("position", value)} />
               <LabelInput label="จำนวนเงิน (บาท)" value={form.amount} onChange={(value) => handleChange("amount", value)} />
               <LabelInput label="เรื่อง" value={form.subject} onChange={(value) => handleChange("subject", value)} />
               <LabelInput label="เรียน" value={form.to} onChange={(value) => handleChange("to", value)} />
@@ -79,7 +79,7 @@ export default function CreatePage() {
             <div className="bg-white rounded-3xl shadow p-6 space-y-5">
               <h2 className="text-lg font-semibold">ข้อมูลผู้ขอ</h2>
               <LabelInput label="ข้าพเจ้า" value={form.requester} onChange={(value) => handleChange("requester", value)} />
-              <LabelInput label="ตำแหน่ง" value={form.position} onChange={(value) => handleChange("position", value)} />
+              <LabelInput label="ตำแหน่ง" value={form.positions} onChange={(value) => handleChange("positions", value)} />
               <LabelInput label="สังกัด" value={form.department} onChange={(value) => handleChange("department", value)} />
               <LabelInput label="พร้อมด้วย" value={form.companion} onChange={(value) => handleChange("companion", value)} />
               <LabelInput label="เดินทางไปปฏิบัติราชการที่" value={form.travelPlace} onChange={(value) => handleChange("travelPlace", value)} />
