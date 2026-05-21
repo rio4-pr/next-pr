@@ -1,26 +1,35 @@
 ﻿"use client";
-import { useState } from "react";
+import {
+  useState,
+  useId
+} from "react";
 import Link from "next/link";
 import AppSidebar from "@/components/AppSidebar";
 import Header from "@/components/Header";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowLeftIcon,
+  CalendarDaysIcon
+}
+  from "@heroicons/react/24/outline";
+import ThaiDateInput from "@/components/ThaiDateInput";
 
 const initialForm = {
   department: "สำนักงานชลประทานที่ 4",
-  requestDate: "20 มิถุนายน 2568",
-  subject: "ขอยืมยานพาหนะ",
+  requestDate: "",
+  subject: "ขออนุญาตใช้ยานพาหนะส่วนกลาง",
+  salutation: "ผส.ชป.4 ผ่าน ผคก.ชป.4 ผบท.ชป.4 และปท.ชป.4",
   vehicleType: "รถบรรทุก 1 ตัน",
-  destination: "กรมชลประทานสามเสนและ สชป.11",
+  destination: "กรมชลประทานสามเสน",
   passengers: "1 คน",
   purpose: "ติดต่อราชการ",
   requester: "นายภาณุพงษ์ เชื้อดีสืบ",
   position: "นายช่างภาพ",
   telephone: "09x-xxx-xxxx",
-  travelStartDate: "18 มิถุนายน 2568",
+  travelStartDate: "",
   travelStartTime: "08:30",
-  travelEndDate: "20 มิถุนายน 2568",
+  travelEndDate: "",
   travelEndTime: "21:30",
-  vehicleDate: "18 มิถุนายน 2568",
+  vehicleDate: "",
   vehicleOrigin: "สำนักงานชลประทานที่ 4",
   vehiclePurpose: "ลงพื้นที่ตรวจงานและประชุมหน่วย",
   approvalNote: "",
@@ -33,19 +42,21 @@ export default function CreateVehiclePage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
   return (
     <div className="flex">
       <AppSidebar collapsed={false} activePage="vehicle" />
 
       <div className="flex-1 bg-gray-100 min-h-screen">
-        <Header toggle={() => {}} title="สร้างคำขอยืมยานพาหนะ" />
+        <Header toggle={() => { }} title="สร้างคำขออนุญาตใช้ยานพาหนะส่วนกลาง" />
 
         <div className="p-6 space-y-6">
           <div className="bg-white rounded-3xl shadow p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-semibold">แบบฟอร์มคำขอยืมยานพาหนะ</h1>
-                <p className="mt-2 text-sm text-slate-500">กรอกข้อมูลคำขอยืมพาหนะตามรูปแบบ</p>
+                <h1 className="text-2xl font-semibold">แบบฟอร์มคำขออนุญาตใช้ยานพาหนะส่วนกลาง</h1>
+                <p className="mt-2 text-sm text-slate-500">กรอกข้อมูลคำขออนุญาตใช้ยานพาหนะส่วนกลางตามรูปแบบ</p>
               </div>
               <Link href="/vehicle" className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition">
                 <ArrowLeftIcon className="w-4 h-4" />
@@ -58,11 +69,19 @@ export default function CreateVehiclePage() {
             <div className="bg-white rounded-3xl shadow p-6 space-y-5">
               <h2 className="text-lg font-semibold">ข้อมูลคำขอ</h2>
               <LabelInput label="หน่วยงาน" value={form.department} onChange={(value) => handleChange("department", value)} />
-              <LabelInput label="วันที่" value={form.requestDate} onChange={(value) => handleChange("requestDate", value)} />
+              <ThaiDateInput
+                label="วันที่"
+                id="requestDate"
+                value={form.requestDate}
+                onChange={(value) => handleChange("requestDate", value)}
+                error={errors.requestDate}
+                required
+              />
               <LabelInput label="เรื่อง" value={form.subject} onChange={(value) => handleChange("subject", value)} />
+              <LabelInput label="เรียน" value={form.salutation} onChange={(value) => handleChange("salutation", value)} />
               <LabelInput label="ประเภทยานพาหนะ" value={form.vehicleType} onChange={(value) => handleChange("vehicleType", value)} />
               <LabelInput label="ไปที่" value={form.destination} onChange={(value) => handleChange("destination", value)} />
-              <LabelInput label="จำนวนคน" value={form.passengers} onChange={(value) => handleChange("passengers", value)} />
+
             </div>
 
             <div className="bg-white rounded-3xl shadow p-6 space-y-5">
@@ -71,23 +90,45 @@ export default function CreateVehiclePage() {
               <LabelInput label="ตำแหน่ง" value={form.position} onChange={(value) => handleChange("position", value)} />
               <LabelInput label="โทรศัพท์" value={form.telephone} onChange={(value) => handleChange("telephone", value)} />
               <LabelInput label="เพื่อ" value={form.purpose} onChange={(value) => handleChange("purpose", value)} />
+              <LabelInput label="จำนวนคน" value={form.passengers} onChange={(value) => handleChange("passengers", value)} />
             </div>
           </div>
 
           <div className="bg-white rounded-3xl shadow p-6 space-y-5">
             <h2 className="text-lg font-semibold">รายละเอียดการเดินทาง</h2>
             <div className="grid gap-4 md:grid-cols-2">
-              <LabelInput label="ตั้งแต่วันที่" value={form.travelStartDate} onChange={(value) => handleChange("travelStartDate", value)} />
-              <LabelInput label="เวลา" value={form.travelStartTime} onChange={(value) => handleChange("travelStartTime", value)} />
-              <LabelInput label="ถึงวันที่" value={form.travelEndDate} onChange={(value) => handleChange("travelEndDate", value)} />
-              <LabelInput label="เวลา" value={form.travelEndTime} onChange={(value) => handleChange("travelEndTime", value)} />
+              <ThaiDateInput
+                label="ตั้งแต่วันที่"
+                id="travelStartDate"
+                value={form.travelStartDate}
+                onChange={(value) => handleChange("travelStartDate", value)}
+                error={errors.travelStartDate}
+                required
+              />
+              <LabelInput label="เวลา" value={form.travelStartTime} onChange={(value) => handleChange("travelStartTime", value)} type="time" />
+              <ThaiDateInput
+                label="ถึงวันที่"
+                id="travelEndDate"
+                value={form.travelEndDate}
+                onChange={(value) => handleChange("travelEndDate", value)}
+                error={errors.travelEndDate}
+                required
+              />
+              <LabelInput label="เวลา" value={form.travelEndTime} onChange={(value) => handleChange("travelEndTime", value)} type="time" />
             </div>
           </div>
 
           <div className="bg-white rounded-3xl shadow p-6 space-y-5">
             <h2 className="text-lg font-semibold">ข้อมูลยานพาหนะ</h2>
             <div className="grid gap-4 md:grid-cols-2">
-              <LabelInput label="ให้ยานพาหนะไปวันที่" value={form.vehicleDate} onChange={(value) => handleChange("vehicleDate", value)} />
+              <ThaiDateInput
+                label="ใช้ยานพาหนะวันที่"
+                id="vehicleDate"
+                value={form.vehicleDate}
+                onChange={(value) => handleChange("vehicleDate", value)}
+                error={errors.vehicleDate}
+                required
+              />
               <LabelInput label="ออกจาก" value={form.vehicleOrigin} onChange={(value) => handleChange("vehicleOrigin", value)} />
               <TextAreaInput label="รายละเอียดการใช้ยานพาหนะ" value={form.vehiclePurpose} onChange={(value) => handleChange("vehiclePurpose", value)} />
             </div>
@@ -116,20 +157,29 @@ function LabelInput({
   label,
   value,
   onChange,
+  type = "text",
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  type?: string;
 }) {
+  const id = useId();
+
   return (
-    <label className="block">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+    <div className="block">
+      <label htmlFor={id} className="text-sm font-medium text-slate-700">
+        {label}
+      </label>
+
       <input
+        id={id}
+        type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
       />
-    </label>
+    </div>
   );
 }
 
@@ -142,14 +192,20 @@ function TextAreaInput({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const id = useId();
+
   return (
-    <label className="block">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+    <div className="block">
+      <label htmlFor={id} className="text-sm font-medium text-slate-700">
+        {label}
+      </label>
+
       <textarea
+        id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="mt-2 h-28 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
       />
-    </label>
+    </div>
   );
 }

@@ -68,14 +68,14 @@ export default function VehiclePage() {
       <AppSidebar collapsed={collapsed} activePage="vehicle" />
 
       <div className="flex-1 bg-gray-100 min-h-screen">
-        <Header toggle={() => setCollapsed(!collapsed)} title="ขอใช้ยานพาหนะ" />
+        <Header toggle={() => setCollapsed(!collapsed)} title="ขออนุญาตใช้ยานพาหนะส่วนกลาง" />
 
         <div className="p-6 space-y-6">
           <div className="bg-white rounded-3xl shadow p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <h1 className="text-2xl font-semibold">ขอใช้ยานพาหนะ</h1>
-                <p className="mt-2 text-sm text-slate-500">จัดการคำขอใช้รถและติดตามสถานะการอนุมัติ</p>
+                <h1 className="text-2xl font-semibold">แบบฟอร์มขออนุญาตใช้ยานพาหนะส่วนกลาง</h1>
+                <p className="mt-2 text-sm text-slate-500">จัดการคำขออนุญาตใช้ยานพาหนะส่วนกลางและติดตามสถานะการอนุมัติ</p>
               </div>
               <Link href="/vehicle/create" className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition">
                 <DocumentTextIcon className="w-5 h-5" />
