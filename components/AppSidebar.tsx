@@ -38,10 +38,10 @@ export default function AppSidebar({
           />
           {!collapsed && (
             <h1 className="text-sm font-semibold mt-2 leading-tight">
-              สำนักงานชลประทานที่ 4
+              ฝ่ายประชาสัมพันธ์ฯ สชป.4
               <br />
               <span className="text-xs opacity-70">
-                Regional Irrigation Office 4
+               PR Regional Irrigation Office 4
               </span>
             </h1>
           )}
