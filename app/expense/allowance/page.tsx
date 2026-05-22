@@ -1,8 +1,8 @@
 ﻿"use client";
 import Link from "next/link";
 import { useState } from "react";
-import AppSidebar from "@/components/AppSidebar";
-import Header from "@/components/Header";
+import AppSidebar from "@/app/components/AppSidebar";
+import Header from "@/app/components/Header";
 import { ArrowLeftIcon, BanknotesIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 const fiscalYear = "2568";

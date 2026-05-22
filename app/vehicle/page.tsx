@@ -1,8 +1,12 @@
 ﻿"use client";
 import { useState } from "react";
 import Link from "next/link";
-import AppSidebar from "@/components/AppSidebar";
-import Header from "@/components/Header";
+import AppSidebar from "@/app/components/AppSidebar";
+import Header from "@/app/components/Header";
+import ThaiDatePicker from "@/app/components/ThaiDatePicker";
+import { formatThaiFull, toDate } from "@/app/utils/dateThai";
+import { isInRange } from "@/app/utils/dateThai";
+
 import {
   BriefcaseIcon,
   CalendarDaysIcon,
@@ -15,6 +19,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 
+
 const vehicleSummary = [
   { label: "คำขอทั้งหมด", value: 12, icon: <DocumentTextIcon className="w-6 h-6" /> },
   { label: "อยู่ระหว่างตรวจสอบ", value: 3, icon: <ClockIcon className="w-6 h-6" /> },
@@ -25,28 +30,28 @@ const vehicleSummary = [
 const rows = [
   {
     id: 1,
-    date: "21 พ.ค. 2567",
+    date: "2024-05-21",
     subject: "ขอใช้รถยนต์ชลประทาน",
     destination: "ชป.318",
     status: "อนุมัติแล้ว",
   },
   {
     id: 2,
-    date: "20 พ.ค. 2567",
+    date: "2024-05-20",
     subject: "ขอใช้รถยนต์ตรวจพื้นที่",
     destination: "อ่างเก็บน้ำ",
     status: "รออนุมัติ",
   },
   {
     id: 3,
-    date: "19 พ.ค. 2567",
+    date: "2024-05-19",
     subject: "ขอใช้รถยนต์ประชุมหน่วย",
     destination: "สำนักงานชลประทาน",
     status: "อยู่ระหว่างตรวจสอบ",
   },
   {
     id: 4,
-    date: "18 พ.ค. 2567",
+    date: "2024-05-18",
     subject: "ขอใช้รถยนต์ซ่อมบำรุง",
     destination: "ชป.318",
     status: "ไม่อนุมัติ",
@@ -62,6 +67,36 @@ const statusStyles: Record<string, string> = {
 
 export default function VehiclePage() {
   const [collapsed, setCollapsed] = useState(false);
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const [filters, setFilters] = useState({
+    keyword: "",
+    startDate: today,
+    endDate: today,
+    status: "ทั้งหมด",
+  });
+
+  const handleFilterChange = (field: string, value: string) => {
+    setFilters((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // 🔥 filter logic ต้องอยู่ในนี้
+  const filtered = rows.filter((row) =>
+    isInRange(row.date, filters.startDate, filters.endDate)
+  );
+
+  const filteredRows = filtered.filter((row) => {
+    const matchKeyword =
+      row.subject.includes(filters.keyword) ||
+      row.destination.includes(filters.keyword);
+
+    const matchStatus =
+      filters.status === "ทั้งหมด" || row.status === filters.status;
+
+    return matchKeyword && matchStatus;
+  });
+
 
   return (
     <div className="flex">
@@ -107,22 +142,44 @@ export default function VehiclePage() {
                     <MagnifyingGlassIcon className="w-5 h-5 text-slate-400" />
                     <input
                       type="text"
-                      placeholder="ค้นหาหัวข้อ, ปลายทาง..."
-                      className="ml-2 w-full bg-transparent text-sm text-slate-800 outline-none"
+                      placeholder="ค้นหา..."
+                      value={filters.keyword}
+                      onChange={(e) => handleFilterChange("keyword", e.target.value)}
+                      className="ml-2 w-full bg-transparent text-sm outline-none"
                     />
                   </div>
                 </label>
                 <label className="block">
                   <span className="text-sm font-medium text-slate-700">ช่วงวันที่</span>
-                  <div className="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                    18/05/2567 - 21/05/2567
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <ThaiDatePicker
+                      id="startDate"
+                      label="วันที่เริ่ม"
+                      value={filters.startDate}
+                      onChange={(v) => handleFilterChange("startDate", v)}
+                    />
+
+                    <ThaiDatePicker
+                      id="endDate"
+                      label="วันที่สิ้นสุด"
+                      value={filters.endDate}
+                      onChange={(v) => handleFilterChange("endDate", v)}
+                    />
                   </div>
                 </label>
                 <label className="block">
                   <span className="text-sm font-medium text-slate-700">สถานะ</span>
-                  <div className="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                    ทั้งหมด
-                  </div>
+                  <select
+                    value={filters.status}
+                    onChange={(e) => handleFilterChange("status", e.target.value)}
+                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
+                  >
+                    <option>ทั้งหมด</option>
+                    <option>อนุมัติแล้ว</option>
+                    <option>อยู่ระหว่างตรวจสอบ</option>
+                    <option>รออนุมัติ</option>
+                    <option>ไม่อนุมัติ</option>
+                  </select>
                 </label>
               </div>
 
@@ -163,7 +220,9 @@ export default function VehiclePage() {
                   {rows.map((row) => (
                     <tr key={row.id}>
                       <td className="px-4 py-4">{row.id}</td>
-                      <td className="px-4 py-4">{row.date}</td>
+                      <td className="px-4 py-4">
+                        {formatThaiFull(toDate(row.date))}
+                      </td>
                       <td className="px-4 py-4 max-w-xs truncate">{row.subject}</td>
                       <td className="px-4 py-4">{row.destination}</td>
                       <td className="px-4 py-4">

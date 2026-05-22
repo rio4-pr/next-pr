@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import AppSidebar from "@/components/AppSidebar";
-import Chart from "@/components/Chart";
-import PieChart from "@/components/PieChart";
-import Card from "@/components/Card";
-import Header from "@/components/Header";
+import AppSidebar from "@/app/components/AppSidebar";
+import Chart from "@/app/components/Chart";
+import PieChart from "@/app/components/PieChart";
+import Card from "@/app/components/Card";
+import Header from "@/app/components/Header";
 import {
   DocumentTextIcon,
   BriefcaseIcon,

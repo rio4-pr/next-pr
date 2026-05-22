@@ -1,22 +1,18 @@
 ﻿"use client";
-import {
-  useState,
-  useId
-} from "react";
+import { useState, useId } from "react";
 import Link from "next/link";
-import AppSidebar from "@/components/AppSidebar";
-import Header from "@/components/Header";
-import {
-  ArrowLeftIcon,
-  CalendarDaysIcon
-}
-  from "@heroicons/react/24/outline";
-import ThaiDateInput from "@/components/ThaiDateInput";
+import AppSidebar from "@/app/components/AppSidebar";
+import Header from "@/app/components/Header";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import ThaiDatePicker from "@/app/components/ThaiDatePicker";
+import { toDate } from "@/app/utils/dateThai";
+
+const today = new Date().toISOString().split("T")[0];
 
 const initialForm = {
-  department: "สำนักงานชลประทานที่ 4",
-  requestDate: "",
-  subject: "ขออนุญาตใช้ยานพาหนะส่วนกลาง",
+  department: "",
+  requestDate: today,
+  subject: "",
   salutation: "ผส.ชป.4 ผ่าน ผคก.ชป.4 ผบท.ชป.4 และปท.ชป.4",
   vehicleType: "รถบรรทุก 1 ตัน",
   destination: "กรมชลประทานสามเสน",
@@ -25,24 +21,28 @@ const initialForm = {
   requester: "นายภาณุพงษ์ เชื้อดีสืบ",
   position: "นายช่างภาพ",
   telephone: "09x-xxx-xxxx",
-  travelStartDate: "",
-  travelStartTime: "08:30",
-  travelEndDate: "",
-  travelEndTime: "21:30",
-  vehicleDate: "",
+  travelStartDate: today,
+  travelStartTime: "",
+  travelEndDate: today,
+  travelEndTime: "",
+  vehicleDate: today,
   vehicleOrigin: "สำนักงานชลประทานที่ 4",
   vehiclePurpose: "ลงพื้นที่ตรวจงานและประชุมหน่วย",
   approvalNote: "",
 };
+type FormType = typeof initialForm;
 
 export default function CreateVehiclePage() {
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState<FormType>(initialForm);
 
-  const handleChange = (field: keyof typeof initialForm, value: string) => {
+  const handleChange = (field: keyof FormType, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const handleSubmit = () => {
+    console.log("FORM DATA:", form);
+    alert("บันทึกข้อมูลสำเร็จ");
+  };
 
   return (
     <div className="flex">
@@ -52,98 +52,84 @@ export default function CreateVehiclePage() {
         <Header toggle={() => { }} title="สร้างคำขออนุญาตใช้ยานพาหนะส่วนกลาง" />
 
         <div className="p-6 space-y-6">
-          <div className="bg-white rounded-3xl shadow p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-semibold">แบบฟอร์มคำขออนุญาตใช้ยานพาหนะส่วนกลาง</h1>
-                <p className="mt-2 text-sm text-slate-500">กรอกข้อมูลคำขออนุญาตใช้ยานพาหนะส่วนกลางตามรูปแบบ</p>
-              </div>
-              <Link href="/vehicle" className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition">
-                <ArrowLeftIcon className="w-4 h-4" />
-                ย้อนกลับ
-              </Link>
+
+          {/* HEADER */}
+          <div className="bg-white rounded-3xl shadow p-6 flex justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold">
+                แบบฟอร์มคำขออนุญาตใช้ยานพาหนะส่วนกลาง
+              </h1>
             </div>
+            <Link href="/vehicle" className="btn-back">
+              <ArrowLeftIcon className="w-4 h-4" />
+              ย้อนกลับ
+            </Link>
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-2">
-            <div className="bg-white rounded-3xl shadow p-6 space-y-5">
-              <h2 className="text-lg font-semibold">ข้อมูลคำขอ</h2>
-              <LabelInput label="หน่วยงาน" value={form.department} onChange={(value) => handleChange("department", value)} />
-              <ThaiDateInput
-                label="วันที่"
+          {/* FORM */}
+          <div className="grid gap-6">
+
+            {/* ข้อมูลคำขอ */}
+            <Section title="ข้อมูลคำขอ">
+              <LabelInput label="หน่วยงาน" value={form.department} onChange={(v: string) => handleChange("department", v)} />
+
+              <ThaiDatePicker
                 id="requestDate"
+                label="วันที่"
                 value={form.requestDate}
-                onChange={(value) => handleChange("requestDate", value)}
-                error={errors.requestDate}
-                required
+                onChange={(v) => handleChange("requestDate", v)}
               />
-              <LabelInput label="เรื่อง" value={form.subject} onChange={(value) => handleChange("subject", value)} />
-              <LabelInput label="เรียน" value={form.salutation} onChange={(value) => handleChange("salutation", value)} />
-              <LabelInput label="ประเภทยานพาหนะ" value={form.vehicleType} onChange={(value) => handleChange("vehicleType", value)} />
-              <LabelInput label="ไปที่" value={form.destination} onChange={(value) => handleChange("destination", value)} />
 
-            </div>
+              <LabelInput label="เรื่อง" value={form.subject} onChange={(v: string) => handleChange("subject", v)} />
+              <LabelInput label="เรียน" value={form.salutation} onChange={(v: string) => handleChange("salutation", v)} />
+              <LabelInput label="ประเภทยานพาหนะ" value={form.vehicleType} onChange={(v: string) => handleChange("vehicleType", v)} />
+              <LabelInput label="ไปที่" value={form.destination} onChange={(v: string) => handleChange("destination", v)} />
+            </Section>
 
-            <div className="bg-white rounded-3xl shadow p-6 space-y-5">
-              <h2 className="text-lg font-semibold">ข้อมูลผู้ขอ</h2>
-              <LabelInput label="ข้าพเจ้า" value={form.requester} onChange={(value) => handleChange("requester", value)} />
-              <LabelInput label="ตำแหน่ง" value={form.position} onChange={(value) => handleChange("position", value)} />
-              <LabelInput label="โทรศัพท์" value={form.telephone} onChange={(value) => handleChange("telephone", value)} />
-              <LabelInput label="เพื่อ" value={form.purpose} onChange={(value) => handleChange("purpose", value)} />
-              <LabelInput label="จำนวนคน" value={form.passengers} onChange={(value) => handleChange("passengers", value)} />
-            </div>
+            {/* ผู้ขอ */}
+            <Section title="ข้อมูลผู้ขอ">
+              <LabelInput label="ข้าพเจ้า" value={form.requester} onChange={(v: string) => handleChange("requester", v)} />
+              <LabelInput label="ตำแหน่ง" value={form.position} onChange={(v: string) => handleChange("position", v)} />
+              <LabelInput label="โทรศัพท์" value={form.telephone} onChange={(v: string) => handleChange("telephone", v)} />
+              <LabelInput label="เพื่อ" value={form.purpose} onChange={(v: string) => handleChange("purpose", v)} />
+              <LabelInput label="จำนวนคน" value={form.passengers} onChange={(v: string) => handleChange("passengers", v)} />
+            </Section>
+
+            {/* เดินทาง */}
+            <Section title="รายละเอียดการเดินทาง">
+              <ThaiDatePicker id="travelStartDate" label="ตั้งแต่วันที่" value={form.travelStartDate} onChange={(v) => handleChange("travelStartDate", v)} />
+              <LabelInput
+                type="time"
+                label="เวลาเริ่ม"
+                value={form.travelStartTime}
+                onChange={(v: string) => handleChange("travelStartTime", v)}
+              />
+
+              <ThaiDatePicker id="travelEndDate" label="ถึงวันที่" value={form.travelEndDate} onChange={(v) => handleChange("travelEndDate", v)} />
+              <LabelInput
+                type="time"
+                label="เวลาเริ่ม"
+                value={form.travelEndTime}
+                onChange={(v: string) => handleChange("travelEndTime", v)}
+              />
+            </Section>
+
+            {/* ยานพาหนะ */}
+            <Section title="ข้อมูลยานพาหนะ">
+              <ThaiDatePicker id="vehicleDate" label="ใช้ยานพาหนะวันที่" value={form.vehicleDate} onChange={(v) => handleChange("vehicleDate", v)} />
+            </Section>
+
+            {/* หมายเหตุ */}
+            <Section title="หมายเหตุ">
+              <TextAreaInput id="approvalNote" label="หมายเหตุ" value={form.approvalNote} onChange={(v: string) => handleChange("approvalNote", v)} />
+            </Section>
+
           </div>
 
-          <div className="bg-white rounded-3xl shadow p-6 space-y-5">
-            <h2 className="text-lg font-semibold">รายละเอียดการเดินทาง</h2>
-            <div className="grid gap-4 md:grid-cols-2">
-              <ThaiDateInput
-                label="ตั้งแต่วันที่"
-                id="travelStartDate"
-                value={form.travelStartDate}
-                onChange={(value) => handleChange("travelStartDate", value)}
-                error={errors.travelStartDate}
-                required
-              />
-              <LabelInput label="เวลา" value={form.travelStartTime} onChange={(value) => handleChange("travelStartTime", value)} type="time" />
-              <ThaiDateInput
-                label="ถึงวันที่"
-                id="travelEndDate"
-                value={form.travelEndDate}
-                onChange={(value) => handleChange("travelEndDate", value)}
-                error={errors.travelEndDate}
-                required
-              />
-              <LabelInput label="เวลา" value={form.travelEndTime} onChange={(value) => handleChange("travelEndTime", value)} type="time" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-3xl shadow p-6 space-y-5">
-            <h2 className="text-lg font-semibold">ข้อมูลยานพาหนะ</h2>
-            <div className="grid gap-4 md:grid-cols-2">
-              <ThaiDateInput
-                label="ใช้ยานพาหนะวันที่"
-                id="vehicleDate"
-                value={form.vehicleDate}
-                onChange={(value) => handleChange("vehicleDate", value)}
-                error={errors.vehicleDate}
-                required
-              />
-              <LabelInput label="ออกจาก" value={form.vehicleOrigin} onChange={(value) => handleChange("vehicleOrigin", value)} />
-              <TextAreaInput label="รายละเอียดการใช้ยานพาหนะ" value={form.vehiclePurpose} onChange={(value) => handleChange("vehiclePurpose", value)} />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-3xl shadow p-6 space-y-5">
-            <h2 className="text-lg font-semibold">หมายเหตุ / อนุญาต</h2>
-            <TextAreaInput label="หมายเหตุ" value={form.approvalNote} onChange={(value) => handleChange("approvalNote", value)} />
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-            <button className="inline-flex items-center justify-center rounded-full bg-slate-200 px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-300 transition">
-              ยกเลิก
-            </button>
-            <button className="inline-flex items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 transition">
+          {/* BUTTON */}
+          <div className="flex justify-end gap-3">
+            <button className="btn-secondary">ยกเลิก</button>
+            <button onClick={handleSubmit} className="btn-primary">
               บันทึกคำขอ
             </button>
           </div>
@@ -153,58 +139,49 @@ export default function CreateVehiclePage() {
   );
 }
 
-function LabelInput({
-  label,
-  value,
-  onChange,
-  type = "text",
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-}) {
+/* ---------- COMPONENTS ---------- */
+
+function Section({ title, children }: any) {
+  return (
+    <div className="bg-white rounded-3xl shadow p-6 space-y-4">
+      <h2 className="text-lg font-semibold">{title}</h2>
+      <div className="grid gap-4 md:grid-cols-2">{children}</div>
+    </div>
+  );
+}
+
+function LabelInput({ label, value, onChange, type = "text" }: any) {
   const id = useId();
 
   return (
-    <div className="block">
-      <label htmlFor={id} className="text-sm font-medium text-slate-700">
+    <div>
+      <label htmlFor={id} className="text-sm font-medium">
         {label}
       </label>
-
       <input
         id={id}
         type={type}
         value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        onChange={(e) => onChange(e.target.value)}
+        className="input"
       />
     </div>
   );
 }
 
-function TextAreaInput({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
+function TextAreaInput({ label, value, onChange }: any) {
   const id = useId();
 
   return (
-    <div className="block">
-      <label htmlFor={id} className="text-sm font-medium text-slate-700">
+    <div className="md:col-span-2">
+      <label htmlFor={id} className="text-sm font-medium">
         {label}
       </label>
-
       <textarea
         id={id}
         value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-28 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        onChange={(e) => onChange(e.target.value)}
+        className="input h-28"
       />
     </div>
   );

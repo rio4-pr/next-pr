@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import AppSidebar from "@/components/AppSidebar";
-import Header from "@/components/Header";
+import AppSidebar from "@/app/components/AppSidebar";
+import Header from "@/app/components/Header";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 const initialForm = {

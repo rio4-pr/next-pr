@@ -7,7 +7,7 @@ import {
   SidebarItem,
   SidebarLabel,
   SidebarSection,
-} from "@/components/Sidebar";
+} from "@/app/components/Sidebar";
 import {
   Cog6ToothIcon,
   HomeIcon,

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import * as XLSX from "xlsx-js-style";
-import AppSidebar from "@/components/AppSidebar";
-import Header from "@/components/Header";
+import AppSidebar from "@/app/components/AppSidebar";
+import Header from "@/app/components/Header";
 import {
   DocumentTextIcon,
   CalendarDaysIcon,
