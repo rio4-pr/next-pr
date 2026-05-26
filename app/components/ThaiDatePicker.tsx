@@ -41,22 +41,20 @@ export default function ThaiDatePicker({
 
   // ปิด popup เมื่อคลิกข้างนอก
   useEffect(() => {
-    const handleClickOutside = (e: any) => {
-      if (ref.current && !ref.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  if (!value) {
+    const today = new Date();
+    const iso = today.toISOString().split("T")[0];
+    onChange(iso);
+  }
+}, [onChange, value]);
 
   // format ไทย
-  const formatThai = (date: Date) => {
+  function formatThai(date: Date) {
     const d = date.getDate();
     const m = thaiMonths[date.getMonth()];
     const y = date.getFullYear() + 543;
     return `${d} ${m} ${y}`;
-  };
+  }
 
   // สร้าง days ในเดือน
   const getDays = () => {

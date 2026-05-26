@@ -2,7 +2,7 @@
 
 import ThaiDatePicker from "@/app/components/ThaiDatePicker";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 import * as XLSX from "xlsx-js-style";
 
@@ -11,12 +11,16 @@ import AppSidebar from "@/app/components/AppSidebar";
 import Header from "@/app/components/Header";
 
 import TimePicker24 from "@/app/components/TimePicker24";
+import ExportButtons from "@/app/components/ExportButtons";
+
+import SearchBox from "@/app/components/SearchBox";
+import { exportPdf } from "@/app/components/ExportPDF";
+
 import {
   MagnifyingGlassIcon,
   CalendarIcon,
   FunnelIcon,
   ArrowDownTrayIcon,
-  ArrowRightOnRectangleIcon,
   EyeIcon,
   PencilSquareIcon,
   TrashIcon,
@@ -39,7 +43,6 @@ type NewsCategory =
   | "water-development"
   | "water-management"
   | "organization";
-
 const detectNewsCategory = (title: string): NewsCategory => {
   const text = title.trim();
 
@@ -227,18 +230,6 @@ const formatThaiDate = (isoDate: string, time: string): string => {
   return `${day} ${monthLabel} ${buddhistYear} ${time}`;
 };
 
-const escapeHtml = (value: string | number) =>
-  String(value)
-    .replace(/&/g, "&amp;")
-
-    .replace(/</g, "&lt;")
-
-    .replace(/>/g, "&gt;")
-
-    .replace(/"/g, "&quot;")
-
-    .replace(/'/g, "&#39;");
-
 const buildWebSummaryRows = (targetRows: ReportRow[]) => {
   const officeMap = new Map<
     string,
@@ -316,50 +307,6 @@ const buildWebSummaryRows = (targetRows: ReportRow[]) => {
   return { rows: summaryRows, totals };
 };
 
-const html2canvasUrl =
-  "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-
-const loadHtml2Canvas = async () => {
-  if (typeof window === "undefined") return null;
-
-  const currentWindow = window as Window & { html2canvas?: any };
-
-  if (currentWindow.html2canvas) {
-    return currentWindow.html2canvas;
-  }
-
-  const existingScript = document.querySelector<HTMLScriptElement>(
-    `script[src="${html2canvasUrl}"]`,
-  );
-
-  if (existingScript) {
-    return new Promise<any>((resolve, reject) => {
-      existingScript.addEventListener("load", () =>
-        resolve(currentWindow.html2canvas),
-      );
-
-      existingScript.addEventListener("error", () =>
-        reject(new Error("Failed to load html2canvas bundle")),
-      );
-    });
-  }
-
-  return new Promise<any>((resolve, reject) => {
-    const script = document.createElement("script");
-
-    script.src = html2canvasUrl;
-
-    script.async = true;
-
-    script.onload = () => resolve(currentWindow.html2canvas);
-
-    script.onerror = () =>
-      reject(new Error("Failed to load html2canvas script"));
-
-    document.body.appendChild(script);
-  });
-};
-
 const getCurrentTime = () => {
   const d = new Date();
   return `${String(d.getHours()).padStart(2, "0")}:${String(
@@ -367,24 +314,25 @@ const getCurrentTime = () => {
   ).padStart(2, "0")}`;
 };
 
+const getTodayISO = () => {
+  const d = new Date();
+  return d.toISOString().split("T")[0];
+};
+
+const categoryLabelMap: Record<NewsCategory, string> = {
+  "royal-project": "โครงการอันเนื่องมาจากพระราชดำริ",
+
+  "water-development": "ด้านพัฒนาแหล่งน้ำ",
+
+  "water-management": "ด้านบริหารจัดการน้ำ",
+
+  organization: "ภาพลักษณ์องค์กร",
+};
+
 export default function NewsReportPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const [collapsed, setCollapsed] = useState(false);
-
-  const categoryLabelMap: Record<NewsCategory, string> = {
-    "royal-project": "โครงการอันเนื่องมาจากพระราชดำริ",
-
-    "water-development": "ด้านพัฒนาแหล่งน้ำ",
-
-    "water-management": "ด้านบริหารจัดการน้ำ",
-
-    organization: "ภาพลักษณ์องค์กร",
-  };
-
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-
-  const [exportType, setExportType] = useState<"excel" | "pdf">("excel");
 
   const [isSummaryCollapsed, setIsSummaryCollapsed] = useState(false);
 
@@ -392,13 +340,6 @@ export default function NewsReportPage() {
 
   const [isCreateNewsModalOpen, setIsCreateNewsModalOpen] = useState(false);
 
-  const getTodayISO = () => {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
   const [newNewsForm, setNewNewsForm] = useState({
     reportDate: getTodayISO(), // 👈 auto วันนี้
     reportTime: getCurrentTime(),
@@ -418,44 +359,33 @@ export default function NewsReportPage() {
       category: "organization",
     });
   };
-  const displayedRows = [...newsRows]
 
-    .filter((row) => {
-      const keyword = searchTerm.trim().toLowerCase();
+  const displayedRows = useMemo(() => {
+    return [...newsRows]
+      .filter((row) => {
+        const keyword = searchTerm.trim().toLowerCase();
+        if (!keyword) return true;
 
-      if (!keyword) return true;
+        const categoryText =
+          categoryLabelMap[row.category as NewsCategory]?.toLowerCase() || "";
 
-      const categoryText =
-        categoryLabelMap[row.category as NewsCategory]?.toLowerCase() || "";
+        return (
+          row.title.toLowerCase().includes(keyword) ||
+          row.source.toLowerCase().includes(keyword) ||
+          categoryText.includes(keyword)
+        );
+      })
+      .sort((a, b) => {
+        if (sortOrder === "asc") return a.id - b.id;
+        return b.id - a.id;
+      });
+  }, [newsRows, searchTerm, sortOrder]);
 
-      return (
-        row.title.toLowerCase().includes(keyword) ||
-        row.source.toLowerCase().includes(keyword) ||
-        categoryText.includes(keyword)
-      );
-    })
-
-    .sort((a, b) => {
-      if (sortOrder === "asc") return a.id - b.id;
-
-      return b.id - a.id;
-    });
-
-  // FIX #5: Both web summary and export summary use the same source (displayedRows)
-
-  const webSummary = buildWebSummaryRows(displayedRows);
-
-  const exportSummary = buildWebSummaryRows(displayedRows);
-
-  const selectedExcelRows = displayedRows;
-
-  const selectedExcelDatasetLabel = "ทั้งหมด";
-
-  const openExportModal = (type: "excel" | "pdf") => {
-    setExportType(type);
-
-    setIsExportModalOpen(true);
-  };
+  // Shared summary for both UI and Export
+  const summary = useMemo(
+    () => buildWebSummaryRows(displayedRows),
+    [displayedRows]
+  );
 
   const handleCreateNews = () => {
     if (
@@ -494,7 +424,9 @@ export default function NewsReportPage() {
     setIsCreateNewsModalOpen(false);
   };
 
-  const exportToExcel = () => {
+  const exportToExcel = () => { // ฟังก์ชันนี้ยังคงอยู่ใน NewsReportPage
+    const selectedExcelRows = displayedRows; // กำหนดค่าใน scope นี้
+    const selectedExcelDatasetLabel = "ทั้งหมด"; // กำหนดค่าใน scope นี้
     const workbook = XLSX.utils.book_new();
 
     const headerRow = exportColumns.map((column) => column.label);
@@ -522,7 +454,7 @@ export default function NewsReportPage() {
 
       summaryHeader,
 
-      ...exportSummary.rows.map((item, index) => [
+      ...summary.rows.map((item, index) => [
         index + 1,
 
         item.office,
@@ -543,23 +475,23 @@ export default function NewsReportPage() {
 
         "",
 
-        exportSummary.totals["royal-project"] > 0
-          ? exportSummary.totals["royal-project"]
+        summary.totals["royal-project"] > 0
+          ? summary.totals["royal-project"]
           : "-",
 
-        exportSummary.totals["water-development"] > 0
-          ? exportSummary.totals["water-development"]
+        summary.totals["water-development"] > 0
+          ? summary.totals["water-development"]
           : "-",
 
-        exportSummary.totals["water-management"] > 0
-          ? exportSummary.totals["water-management"]
+        summary.totals["water-management"] > 0
+          ? summary.totals["water-management"]
           : "-",
 
-        exportSummary.totals.organization > 0
-          ? exportSummary.totals.organization
+        summary.totals.organization > 0
+          ? summary.totals.organization
           : "-",
 
-        exportSummary.totals.total,
+        summary.totals.total,
       ],
 
       [],
@@ -605,9 +537,9 @@ export default function NewsReportPage() {
       { s: { r: 1, c: 0 }, e: { r: 1, c: 12 } },
 
       {
-        s: { r: exportSummary.rows.length + 4, c: 0 },
+        s: { r: summary.rows.length + 4, c: 0 },
 
-        e: { r: exportSummary.rows.length + 4, c: 1 },
+        e: { r: summary.rows.length + 4, c: 1 },
       },
     ];
 
@@ -673,7 +605,7 @@ export default function NewsReportPage() {
       });
     }
 
-    const newsHeaderRowIndex = exportSummary.rows.length + 6;
+    const newsHeaderRowIndex = summary.rows.length + 6;
 
     for (let col = 0; col <= 6; col += 1) {
       applyStyle(newsHeaderRowIndex, col, {
@@ -717,251 +649,13 @@ export default function NewsReportPage() {
     XLSX.writeFile(workbook, "news_report.xlsx");
   };
 
-  const exportToPDF = async () => {
-    const html2canvas = await loadHtml2Canvas();
-
-    if (!html2canvas) return;
-
-    const { jsPDF } = await import("jspdf");
-
-    const tableHeader = exportColumns
-
-      .map((column) => `<th>${column.label}</th>`)
-
-      .join("");
-
-    const tableBody = selectedExcelRows
-
-      .map((row) => {
-        const cells = exportColumns
-
-          .map((column) => `<td>${escapeHtml(row[column.key])}</td>`)
-
-          .join("");
-
-        return `<tr>${cells}</tr>`;
-      })
-
-      .join("");
-
-    const summaryRows = exportSummary.rows
-
-      .map(
-        (item, index) =>
-          `<tr>
-
-<td>${index + 1}</td>
-
-<td>${escapeHtml(item.office)}</td>
-
-<td>${item["royal-project"] || "-"}</td>
-
-<td>${item["water-development"] || "-"}</td>
-
-<td>${item["water-management"] || "-"}</td>
-
-<td>${item.organization || "-"}</td>
-
-<td>${item.total || "-"}</td>
-
-</tr>`,
-      )
-
-      .join("");
-
-    const summaryTotalRow = `<tr>
-
-<td colspan="2"><strong>รวมทั้งหมด</strong></td>
-
-<td><strong>${exportSummary.totals["royal-project"] || "-"}</strong></td>
-
-<td><strong>${exportSummary.totals["water-development"] || "-"}</strong></td>
-
-<td><strong>${exportSummary.totals["water-management"] || "-"}</strong></td>
-
-<td><strong>${exportSummary.totals.organization || "-"}</strong></td>
-
-<td><strong>${exportSummary.totals.total}</strong></td>
-
-</tr>`;
-
-    const htmlContent = `
-
-<div class="pdf-export">
-
-<style>
-
-* { box-sizing: border-box; }
-
-.pdf-export {
-
-width: 297mm;
-
-background: #dbeafe;
-
-color: #0f172a;
-
-padding: 12px;
-
-font-family: Arial, sans-serif;
-
-}
-
-h1 { margin: 0; font-size: 24px; color: #0f3b70; line-height: 1.1; }
-
-.title-inline { color: #c1121f; }
-
-.meta { margin: 6px 0 10px; font-size: 12px; color: #1e3a8a; font-weight: 600; }
-
-.layout { display: grid; grid-template-columns: 100%; gap: 10px; align-items: start; }
-
-table { width: 100%; border-collapse: collapse; font-size: 9px; background: #fff; }
-
-th, td { border: 1px solid #334155; padding: 4px; text-align: left; vertical-align: top; }
-
-thead { background: #4f83d1; color: #fff; }
-
-.summary-table th, .summary-table td { text-align: center; }
-
-.main-table td:nth-child(1), .main-table td:nth-child(2) { text-align: center; white-space: nowrap; }
-
-.main-table td:nth-child(3) { white-space: normal; word-break: break-word; }
-
-tbody tr:nth-child(even) { background: #eff6ff; }
-
-</style>
-
-<h1>รายงานข่าวสำนักงานชลประทานที่ 4 <span class="title-inline">${escapeHtml(selectedExcelDatasetLabel)}</span></h1>
-
-<p class="meta">พิมพ์เมื่อ: ${new Date().toLocaleString("th-TH")}</p>
-
-<div class="layout">
-
-<table class="summary-table">
-
-<thead>
-
-<tr>
-
-<th>ลำดับ</th><th>หน่วยงาน</th>
-
-<th>โครงการอันเนื่องมาจากพระราชดำริ</th>
-
-<th>ด้านพัฒนาแหล่งน้ำ</th>
-
-<th>ด้านบริหารจัดการน้ำ</th>
-
-<th>ด้านภาพลักษณ์องค์กร</th>
-
-<th>รวมทั้งหมด</th>
-
-</tr>
-
-</thead>
-
-<tbody>${summaryRows}${summaryTotalRow}</tbody>
-
-</table>
-
-<table class="main-table">
-
-<thead><tr>${tableHeader}</tr></thead>
-
-<tbody>${tableBody}</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-`;
-
-    const element = document.createElement("div");
-
-    element.style.position = "fixed";
-
-    element.style.left = "-10000px";
-
-    element.style.top = "0";
-
-    element.style.width = "297mm";
-
-    element.style.opacity = "1";
-
-    element.style.pointerEvents = "none";
-
-    element.innerHTML = htmlContent;
-
-    document.body.appendChild(element);
-
-    try {
-      const canvas = await html2canvas(element, {
-        backgroundColor: "#ffffff",
-
-        scale: 2,
-      });
-
-      const imgData = canvas.toDataURL("image/png");
-
-      const pdf = new jsPDF({
-        orientation: "landscape",
-
-        unit: "mm",
-
-        format: "a4",
-      });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-
-      const ratio = canvas.width / canvas.height;
-
-      const imageHeight = pdfWidth / ratio;
-
-      if (imageHeight <= pdfHeight) {
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imageHeight);
-      } else {
-        // FIX #6: Correct multi-page PDF position calculation
-
-        let pageCount = 0;
-
-        let remainingHeight = imageHeight;
-
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imageHeight);
-
-        remainingHeight -= pdfHeight;
-
-        pageCount += 1;
-
-        while (remainingHeight > 0) {
-          const yOffset = -(pageCount * pdfHeight);
-
-          pdf.addPage();
-
-          pdf.addImage(imgData, "PNG", 0, yOffset, pdfWidth, imageHeight);
-
-          remainingHeight -= pdfHeight;
-
-          pageCount += 1;
-        }
-      }
-
-      pdf.save("news_report.pdf");
-    } finally {
-      document.body.removeChild(element);
-    }
-  };
-
-  const handleConfirmExport = async () => {
-    if (exportType === "excel") {
-      exportToExcel();
-    } else {
-      await exportToPDF();
-    }
-
-    setIsExportModalOpen(false);
+  const handleExportPdf = async () => {
+    await exportPdf({
+      title: "รายงานสรุปข่าวสาร ประจำเดือนพฤษภาคม 2567",
+      summaryRows: summary.rows,
+      summaryTotals: summary.totals,
+      newsRows: displayedRows,
+    }, "news_report.pdf");
   };
 
   const reportSummary = [
@@ -999,6 +693,7 @@ tbody tr:nth-child(even) { background: #eff6ff; }
   ];
 
   return (
+
     <div className="flex">
       <AppSidebar collapsed={collapsed} activePage="newsreport" />
 
@@ -1008,8 +703,10 @@ tbody tr:nth-child(even) { background: #eff6ff; }
           title="สรุปรายงานข่าว"
         />
 
-        <div className="p-6 space-y-6">
-          <div className="bg-white rounded-2xl shadow p-6">
+        <div id="pdf-content" className="p-6 space-y-6 bg-white" style={{ backgroundColor: '#fff' }}>
+          
+          {/* Section Header & Summary */}
+          <div className="bg-white p-6 rounded-3xl">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <h1 className="text-2xl font-semibold mt-2">สรุปรายงานข่าว</h1>
@@ -1055,18 +752,11 @@ tbody tr:nth-child(even) { background: #eff6ff; }
                   <span className="text-sm font-medium text-slate-700">
                     ค้นหา
                   </span>
-
-                  <div className="mt-2 flex items-center rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
-                    <MagnifyingGlassIcon className="w-5 h-5 text-slate-400" />
-
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="ค้นหาชื่อข่าว, หัวข้อข่าว, แหล่งข่าว..."
-                      className="ml-2 w-full bg-transparent text-sm text-slate-800 outline-none"
-                    />
-                  </div>
+                  <SearchBox
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    placeholder="ค้นหาชื่อข่าว, หัวข้อข่าว, แหล่งข่าว..."
+                  />
                 </label>
 
                 <label className="block">
@@ -1108,79 +798,101 @@ tbody tr:nth-child(even) { background: #eff6ff; }
                   + เพิ่มข่าว
                 </button>
 
-                <button
-                  onClick={() => openExportModal("excel")}
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition"
-                >
-                  <ArrowDownTrayIcon className="w-4 h-4" />
-                  Excel
-                </button>
-
-                <button
-                  onClick={() => openExportModal("pdf")}
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition"
-                >
-                  <ArrowRightOnRectangleIcon className="w-4 h-4" />
-                  PDF
-                </button>
+                <ExportButtons onExportExcel={exportToExcel} onExportPdf={handleExportPdf} />
               </div>
             </div>
 
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200 text-sm">
-                <thead>
-                  <tr className="bg-slate-50 text-slate-600">
+                <thead className="bg-slate-50 text-slate-600">
+
+                  <tr>
                     <th
                       onClick={() =>
                         setSortOrder((prev) =>
                           prev === "asc" ? "desc" : "asc",
                         )
                       }
-                      className="px-4 py-3 text-left font-medium cursor-pointer select-none"
+                      className="
+        px-4 py-3
+        text-center align-middle
+        font-medium
+        whitespace-normal
+        cursor-pointer
+        select-none
+      "
                     >
                       ลำดับ {sortOrder === "asc" ? "▲" : "▼"}
                     </th>
 
-                    <th className="px-4 py-3 text-left font-medium">
+                    <th className="px-4 py-3 text-center align-middle font-medium">
                       วันที่/เวลา
                     </th>
 
-                    <th className="px-4 py-3 text-left font-medium">
+                    <th className="px-4 py-3 text-center align-middle font-medium">
                       หัวข้อข่าว
                     </th>
 
-                    <th className="px-4 py-3 text-left font-medium">
+                    <th className="px-4 py-3 text-center align-middle font-medium">
                       แหล่งข่าว
                     </th>
 
-                    <th className="px-4 py-3 text-left font-medium">จัดการ</th>
+                    <th className="px-4 py-3 text-center align-middle font-medium">
+                      จัดการ
+                    </th>
                   </tr>
                 </thead>
 
                 <tbody className="divide-y divide-slate-200 text-slate-700">
                   {displayedRows.map((row) => (
                     <tr key={row.id}>
-                      <td className="px-4 py-4">{row.id}</td>
+                      <td className="px-4 py-4 text-center align-middle">
+                        {row.id}
+                      </td>
 
-                      <td className="px-4 py-4">{row.date}</td>
+                      <td className="px-4 py-4 text-center align-middle">
+                        <div className="flex flex-col items-center justify-center">
+                          <span className="text-sm font-medium text-slate-700">
+                            {row.date.split(" ").slice(0, 3).join(" ")}
+                          </span>
 
-                      <td className="px-4 py-4 max-w-xs truncate">
+                          <span className="text-xs text-slate-400">
+                            {row.date.split(" ").slice(3).join(" ")} น.
+                          </span>
+                        </div>
+                      </td>
+
+                      <td
+                        className="px-4 py-4 max-w-xs text-center align-middle truncate"
+                        title={row.title}
+                      >
                         {row.title}
                       </td>
 
-                      <td className="px-4 py-4">{row.source}</td>
+                      <td className="px-4 py-4 text-center align-middle">
+                        {row.source}
+                      </td>
 
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-2 text-slate-500">
-                          <button className="rounded-full p-2 hover:bg-slate-100">
+                      <td className="px-4 py-4 text-center align-middle">
+                        <div className="flex items-center justify-center gap-2 text-slate-500">
+                          <button
+                            title="ดูรายละเอียด"
+                            className="rounded-full p-2 transition hover:bg-slate-100"
+                          >
                             <EyeIcon className="w-4 h-4" />
                           </button>
 
-                          <button className="rounded-full p-2 hover:bg-slate-100">
+                          <button
+                            title="แก้ไข"
+                            className="rounded-full p-2 transition hover:bg-slate-100"
+                          >
                             <PencilSquareIcon className="w-4 h-4" />
                           </button>
 
-                          <button className="rounded-full p-2 hover:bg-slate-100 text-red-500">
+                          <button
+                            title="ลบ"
+                            className="rounded-full p-2 text-red-500 transition hover:bg-slate-100"
+                          >
                             <TrashIcon className="w-4 h-4" />
                           </button>
                         </div>
@@ -1230,7 +942,7 @@ tbody tr:nth-child(even) { background: #eff6ff; }
                     </thead>
 
                     <tbody className="text-slate-700">
-                      {webSummary.rows.map((item, index) => (
+                      {summary.rows.map((item, index) => (
                         <tr
                           key={item.office}
                           className="border-t border-slate-300 bg-white"
@@ -1266,12 +978,12 @@ tbody tr:nth-child(even) { background: #eff6ff; }
                             key={category.key}
                             className="px-3 py-3 text-center"
                           >
-                            {webSummary.totals[category.key] || "-"}
+                          {summary.totals[category.key] || "-"}
                           </td>
                         ))}
 
                         <td className="px-3 py-3 text-center">
-                          {webSummary.totals.total}
+                        {summary.totals.total}
                         </td>
                       </tr>
                     </tbody>
@@ -1282,6 +994,7 @@ tbody tr:nth-child(even) { background: #eff6ff; }
           </div>
         </div>
       </div>
+
 
       {isCreateNewsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
@@ -1350,7 +1063,7 @@ tbody tr:nth-child(even) { background: #eff6ff; }
 
               <label className="block md:col-span-2">
                 <span className="text-sm font-medium text-slate-700">
-                  หัวข้อข่าว
+                  เนื้อหาข่าว
                 </span>
 
                 <textarea
@@ -1366,7 +1079,7 @@ tbody tr:nth-child(even) { background: #eff6ff; }
                       category: detectNewsCategory(value),
                     }));
                   }}
-                  placeholder="กรอกหัวข้อข่าว"
+                  placeholder="กรอกเนื้อหาข่าว"
                   rows={4}
                   className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 resize-none"
                 />
@@ -1407,68 +1120,24 @@ tbody tr:nth-child(even) { background: #eff6ff; }
               </label>
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-4">
+            <div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 rounded-b-3xl">
               <button
                 onClick={() => setIsCreateNewsModalOpen(false)}
-                className="rounded-full border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                className="rounded-full border border-slate-300 bg-white px-5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
               >
                 ยกเลิก
               </button>
-
               <button
                 onClick={handleCreateNews}
-                disabled={
-                  !newNewsForm.reportDate ||
-                  !newNewsForm.reportTime ||
-                  !newNewsForm.source ||
-                  !newNewsForm.title
-                }
-                className="rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="rounded-full bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
               >
-                บันทึกข่าว
+                บันทึก
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {isExportModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white shadow-xl">
-            <div className="border-b border-slate-200 px-6 py-4">
-              <h3 className="text-lg font-semibold">
-                Export {exportType.toUpperCase()}
-              </h3>
-
-              <p className="mt-1 text-sm text-slate-500">
-                ยืนยันการ Export รายงานข่าว
-              </p>
-            </div>
-
-            <div className="space-y-4 px-6 py-5">
-              <p className="text-sm text-slate-600">
-                ระบบจะ Export ข้อมูลทั้งหมดในตารางปัจจุบัน
-              </p>
-            </div>
-
-            <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-4">
-              <button
-                onClick={() => setIsExportModalOpen(false)}
-                className="rounded-full border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
-              >
-                ยกเลิก
-              </button>
-
-              <button
-                onClick={handleConfirmExport}
-                className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-              >
-                Export
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
