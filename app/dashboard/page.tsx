@@ -72,11 +72,24 @@ export default function DashboardPage() {
     return (
         <div className="flex">
 
-            {/* 🔹 Sidebar */}
-            <AppSidebar collapsed={collapsed} />
+            <div
+                className={`
+        transition-all
+        duration-500
+
+        ${collapsed
+                        ? "w-20"
+                        : "w-64"
+                    }
+    `}
+            >
+                <AppSidebar
+                    collapsed={collapsed}
+                />
+            </div>
 
             {/* 🔹 Main */}
-            <div className="flex-1 bg-gray-100 min-h-screen">
+            <div className="flex-1 min-w-0 bg-gray-100 min-h-screen">
 
                 {/* 🔹 Header */}
                 <Header toggle={() => setCollapsed(!collapsed)} />
@@ -114,8 +127,13 @@ export default function DashboardPage() {
                         onChange={setYear}
                     />
 
-                    <div className="grid lg:grid-cols-2 gap-6">
-                        <div className="bg-white p-6 rounded-2xl shadow">
+                    <div className="grid lg:grid-cols-2 gap-6 min-w-0">
+                        <div className="bg-white
+  p-6
+  rounded-2xl
+  shadow
+  min-w-0
+  overflow-hidden">
                             <h2 className="font-bold mb-4">
                                 แนวโน้มข่าว
                             </h2>
@@ -125,7 +143,12 @@ export default function DashboardPage() {
                             />
                         </div>
 
-                        <div className="bg-white p-6 rounded-2xl shadow">
+                        <div className="bg-white
+  p-6
+  rounded-2xl
+  shadow
+  min-w-0
+  overflow-hidden">
                             <h2 className="font-bold mb-4">
                                 ไปราชการ
                             </h2>
@@ -137,7 +160,12 @@ export default function DashboardPage() {
                             />
                         </div>
 
-                        <div className="bg-white p-6 rounded-2xl shadow">
+                        <div className="bg-white
+  p-6
+  rounded-2xl
+  shadow
+  min-w-0
+  overflow-hidden">
                             <h2 className="font-bold mb-4">
                                 ขอใช้รถ
                             </h2>
@@ -149,7 +177,12 @@ export default function DashboardPage() {
                             />
                         </div>
 
-                        <div className="bg-white p-6 rounded-2xl shadow">
+                        <div className="bg-white
+  p-6
+  rounded-2xl
+  shadow
+  min-w-0
+  overflow-hidden">
                             <h2 className="font-bold mb-4">
                                 ค่าใช้จ่าย
                             </h2>

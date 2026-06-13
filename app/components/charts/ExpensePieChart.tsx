@@ -1,5 +1,7 @@
 "use client";
 
+import { memo } from "react";
+
 import {
     PieChart,
     Pie,
@@ -31,55 +33,64 @@ const COLORS = [
     "#6366F1",
 ];
 
-export default function ExpensePieChart({
+function ExpensePieChart({
     data,
 }: Props) {
     return (
-        <ResponsiveContainer
-            width="100%"
-            height={350}
-        >
-            <PieChart>
-                <Pie
-                    data={data}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={70}
-                    outerRadius={120}
-                    paddingAngle={3}
-                    label={({ name, percent }) =>
-                        `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
-                    }
-                >
-                    {data.map(
-                        (_, index) => (
-                            <Cell
-                                key={`cell-${index}`}
-                                fill={
-                                    COLORS[
-                                    index %
-                                    COLORS.length
-                                    ]
-                                }
-                            />
-                        )
-                    )}
-                </Pie>
+        <div className="h-[320px]">
+            <ResponsiveContainer
+                width="100%"
+                height="100%"
+                debounce={300}
+            >
+                <PieChart>
+                    <Pie
+                        data={data}
+                        dataKey="value"
+                        nameKey="name"
 
-                <Tooltip
-                    formatter={(value) => [
-                        `฿${Number(value).toLocaleString()}`,
-                        "จำนวนเงิน",
-                    ]}
-                />
+                        isAnimationActive={false}
 
-                <Legend
-                    verticalAlign="bottom"
-                    height={36}
-                />
-            </PieChart>
-        </ResponsiveContainer>
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={70}
+                        outerRadius={120}
+                        paddingAngle={3}
+                        label={({ name, percent }) =>
+                            `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                        }
+                    >
+                        {data.map(
+                            (_, index) => (
+                                <Cell
+                                    key={`cell-${index}`}
+                                    fill={
+                                        COLORS[
+                                        index %
+                                        COLORS.length
+                                        ]
+                                    }
+                                />
+                            )
+                        )}
+                    </Pie>
+
+                    <Tooltip
+                        formatter={(value) => [
+                            `฿${Number(value).toLocaleString()}`,
+                            "จำนวนเงิน",
+                        ]}
+                    />
+
+                    <Legend
+                        verticalAlign="bottom"
+                        height={36}
+                    />
+                </PieChart>
+            </ResponsiveContainer>
+        </div>
     );
 }
+export default memo(
+    ExpensePieChart
+);

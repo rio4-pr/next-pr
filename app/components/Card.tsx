@@ -1,10 +1,14 @@
+"use client";
+
+import { memo } from "react";
+
 type Props = {
   title: string;
   value: number;
   icon?: React.ReactNode;
 };
 
-export default function Card({ title, value, icon }: Props) {
+function Card({ title, value, icon }: Props) {
   return (
     <div className="bg-white p-4 rounded-xl shadow">
       <div className="flex items-start justify-between gap-4">
@@ -21,3 +25,6 @@ export default function Card({ title, value, icon }: Props) {
     </div>
   );
 }
+export default memo(
+  Card
+);
