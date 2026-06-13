@@ -49,7 +49,25 @@ export default function DashboardPage() {
         };
 
     if (!data)
-        return <div>Loading...</div>;
+        return (
+            <div className="flex min-h-[70vh] items-center justify-center">
+                <div className="text-center">
+
+                    <div className="mx-auto mb-6 h-20 w-20">
+                        <div className="h-full w-full animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
+                    </div>
+
+                    <h2 className="text-xl font-bold text-slate-700">
+                        กำลังโหลดข้อมูล
+                    </h2>
+
+                    <p className="mt-2 text-slate-500">
+                        กรุณารอสักครู่...
+                    </p>
+
+                </div>
+            </div>
+        );
 
     // const currentFY =
     //     new Date().getMonth() >= 9
