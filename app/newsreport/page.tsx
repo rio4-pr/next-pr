@@ -21,6 +21,7 @@ import NewsForm from '@/app/components/NewsForm';
 
 import { successAlert, errorAlert, confirmDelete, } from "@/lib/swal";
 import {
+  GlobeAltIcon,
   MagnifyingGlassIcon,
   CalendarIcon,
   FunnelIcon,
@@ -755,29 +756,59 @@ export default function NewsReportPage() {
     },
 
     {
-      label: "ด้านบริหารจัดการน้ำ",
+      label: "โครงการอันเนื่องมาจากพระราชดำริ",
 
-      value: displayedRows.filter((i) => i.category === "water-management").length,
+      value: displayedRows.filter((i) => i.category === "ROYAL").length,
 
       icon: <CalendarIcon className="w-6 h-6" />,
     },
 
     {
-      label: "ด้านพัฒนาแหล่งน้ำ",
+      label: "ด้านพัฒนาแหล่งน้ำและเพิ่มพื้นที่ชลประทาน",
 
-      value: displayedRows.filter((i) => i.category === "water-development").length,
+      value: displayedRows.filter((i) => i.category === "WATER").length,
 
       icon: <FunnelIcon className="w-6 h-6" />,
     },
 
     {
-      label: "ภาพลักษณ์องค์กร",
+      label: "ด้านบริหารจัดการน้ำ บรรเทาภัยอันเกิดจากน้ำ",
 
-      value: displayedRows.filter((i) => i.category === "organization").length,
+      value: displayedRows.filter((i) => i.category === "AGRI").length,
 
       icon: <MagnifyingGlassIcon className="w-6 h-6" />,
     },
+
+    {
+      label: "ด้านการสร้างภาพลักษณ์องค์กร และอื่นๆ",
+
+      value: displayedRows.filter((i) => i.category === "ENV").length,
+
+      icon: <GlobeAltIcon className="w-6 h-6" />,
+    },
   ];
+
+  if (!displayedRows.length)
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center">
+        <div className="text-center">
+
+          <div className="mx-auto mb-6 h-20 w-20">
+            <div className="h-full w-full animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
+          </div>
+
+          <h2 className="text-xl font-bold text-slate-700">
+            กำลังโหลดข้อมูล
+          </h2>
+
+          <p className="mt-2 text-slate-500">
+            กรุณารอสักครู่...
+          </p>
+
+        </div>
+      </div>
+    );
+
 
   return (
 

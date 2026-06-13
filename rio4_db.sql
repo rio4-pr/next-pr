@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 12, 2026 at 08:49 AM
+-- Generation Time: Jun 13, 2026 at 01:10 PM
 -- Server version: 5.6.20
 -- PHP Version: 5.5.15
 
@@ -275,7 +275,7 @@ CREATE TABLE IF NOT EXISTS `news_daily_summary` (
   `negative_count` int(11) DEFAULT '0' COMMENT 'จำนวนข่าวลบ',
   `neutral_count` int(11) DEFAULT '0' COMMENT 'จำนวนข่าวกลาง',
   `note` text COMMENT 'หมายเหตุ'
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=64 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=51 ;
 
 --
 -- Dumping data for table `news_daily_summary`
@@ -351,15 +351,13 @@ CREATE TABLE IF NOT EXISTS `news_items` (
   `is_highlighted` tinyint(1) DEFAULT '0' COMMENT 'ข่าวเด่น',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'วันที่บันทึก',
   `created_by` int(11) DEFAULT NULL COMMENT 'users'
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=101 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=102 ;
 
 --
 -- Dumping data for table `news_items`
 --
 
 INSERT INTO `news_items` (`news_id`, `category_id`, `source_id`, `news_title`, `news_summary`, `news_url`, `news_date`, `sentiment`, `is_highlighted`, `created_at`, `created_by`) VALUES
-(51, 1, 1, 'ติดตามผลโครงการอันเนื่องมาจากพระราชดำริในพื้นที่ภาคเหนือ', 'หน่วยงานที่เกี่ยวข้องลงพื้นที่ติดตามความก้าวหน้าโครงการพัฒนาแหล่งน้ำ', 'https://news.example.com/1', '2026-05-01', 'neutral', 1, '2026-06-12 04:26:18', 1),
-(52, 1, 2, 'เกษตรกรได้รับประโยชน์จากโครงการพระราชดำริด้านน้ำ', 'ช่วยเพิ่มผลผลิตทางการเกษตรในพื้นที่รับน้ำ', 'https://news.example.com/2', '2026-05-02', 'neutral', 0, '2026-06-12 04:26:18', 1),
 (53, 1, 3, 'เร่งดำเนินงานโครงการพัฒนาอ่างเก็บน้ำตามแนวพระราชดำริ', 'เพิ่มศักยภาพการกักเก็บน้ำในฤดูแล้ง', 'https://news.example.com/3', '2026-05-03', 'neutral', 0, '2026-06-12 04:26:18', 1),
 (54, 1, 4, 'ติดตามการบริหารจัดการน้ำในพื้นที่โครงการพระราชดำริ', 'สร้างความมั่นคงด้านน้ำให้ประชาชน', 'https://news.example.com/4', '2026-05-04', 'positive', 0, '2026-06-12 04:26:18', 1),
 (55, 1, 5, 'ชุมชนร่วมอนุรักษ์แหล่งน้ำตามแนวพระราชดำริ', 'ส่งเสริมการมีส่วนร่วมของประชาชน', 'https://news.example.com/5', '2026-05-05', 'negative', 0, '2026-06-12 04:26:18', 1),
@@ -407,7 +405,8 @@ INSERT INTO `news_items` (`news_id`, `category_id`, `source_id`, `news_title`, `
 (97, 4, 4, 'เปิดช่องทางรับฟังความคิดเห็นประชาชน', 'ส่งเสริมการมีส่วนร่วม', 'https://news.example.com/47', '2026-06-16', 'neutral', 0, '2026-06-12 04:26:18', 1),
 (98, 4, 5, 'ประชาชนชื่นชมการทำงานของกรมชลประทาน', 'สร้างภาพลักษณ์เชิงบวกต่อองค์กร', 'https://news.example.com/48', '2026-06-17', 'neutral', 0, '2026-06-12 04:26:18', 1),
 (99, 4, 1, 'จัดกิจกรรม CSR ร่วมกับชุมชน', 'เสริมสร้างความสัมพันธ์อันดี', 'https://news.example.com/49', '2026-06-18', 'neutral', 0, '2026-06-12 04:26:18', 1),
-(100, 4, 2, 'สรุปผลการประชาสัมพันธ์ประจำเดือน', 'การรับรู้ข่าวสารเพิ่มขึ้นอย่างต่อเนื่อง', 'https://news.example.com/50', '2026-06-19', 'neutral', 0, '2026-06-12 04:26:18', 1);
+(100, 4, 2, 'สรุปผลการประชาสัมพันธ์ประจำเดือน', 'การรับรู้ข่าวสารเพิ่มขึ้นอย่างต่อเนื่อง', 'https://news.example.com/50', '2026-06-19', 'neutral', 0, '2026-06-12 04:26:18', 1),
+(101, 4, 1, 'บริหารน้ำ', 'ทดสอบ', 'http://localhost:3000/', '2026-06-12', 'neutral', 0, '2026-06-12 07:09:58', NULL);
 
 -- --------------------------------------------------------
 
@@ -420,18 +419,24 @@ CREATE TABLE IF NOT EXISTS `news_sources` (
   `source_name` varchar(150) NOT NULL COMMENT 'ชื่อสำนักข่าว',
   `source_type` enum('online','print','tv','radio') DEFAULT 'online' COMMENT 'ออนไลน์/สิ่งพิมพ์/TV',
   `source_url` varchar(255) DEFAULT NULL COMMENT 'URL เว็บไซต์'
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=6 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=12 ;
 
 --
 -- Dumping data for table `news_sources`
 --
 
 INSERT INTO `news_sources` (`source_id`, `source_name`, `source_type`, `source_url`) VALUES
-(1, 'Thai PBS', 'online', 'https://www.thaipbs.or.th'),
-(2, 'ไทยรัฐออนไลน์', 'online', 'https://www.thairath.co.th'),
-(3, 'เดลินิวส์', 'online', 'https://www.dailynews.co.th'),
-(4, 'มติชน', 'online', 'https://www.matichon.co.th'),
-(5, 'กรุงเทพธุรกิจ', 'online', 'https://www.bangkokbiznews.com');
+(1, 'สชป.4', 'online', ''),
+(2, 'คป.แพร่', 'online', ''),
+(3, 'คป.กำแพงเพชร', 'online', ''),
+(4, 'คป.ตาก', 'online', ''),
+(5, 'คป.สุโขทัย', 'online', ''),
+(6, 'คบ.แม่ยม', 'online', ''),
+(7, 'คบ.ท่อทองแดง', 'online', ''),
+(8, 'คบ.วังบัว', 'online', ''),
+(9, 'คบ.วังยาง-หนองขวัญ', 'online', ''),
+(10, 'คส.4', 'online', ''),
+(11, 'คบ.สุโขทัย', 'online', '');
 
 -- --------------------------------------------------------
 
@@ -1251,17 +1256,17 @@ MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'รหัสหม
 -- AUTO_INCREMENT for table `news_daily_summary`
 --
 ALTER TABLE `news_daily_summary`
-MODIFY `summary_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'รหัสสรุป',AUTO_INCREMENT=64;
+MODIFY `summary_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'รหัสสรุป',AUTO_INCREMENT=51;
 --
 -- AUTO_INCREMENT for table `news_items`
 --
 ALTER TABLE `news_items`
-MODIFY `news_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'รหัสข่าว',AUTO_INCREMENT=101;
+MODIFY `news_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'รหัสข่าว',AUTO_INCREMENT=102;
 --
 -- AUTO_INCREMENT for table `news_sources`
 --
 ALTER TABLE `news_sources`
-MODIFY `source_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'รหัสแหล่งข่าว',AUTO_INCREMENT=6;
+MODIFY `source_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'รหัสแหล่งข่าว',AUTO_INCREMENT=12;
 --
 -- AUTO_INCREMENT for table `travel_approvals`
 --
