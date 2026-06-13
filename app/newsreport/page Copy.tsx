@@ -29,8 +29,6 @@ import {
   EyeIcon,
   PencilSquareIcon,
   TrashIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
 } from "@heroicons/react/24/outline";
 
 // Define interfaces for better type safety
@@ -69,11 +67,6 @@ interface SortColumn {
   label: string;
 }
 
-interface SortState {
-  column: string;
-  direction: "asc" | "desc" | null;
-}
-
 const detectNewsCategory = (title: string, content: string = ""): string => {
   const result = classifyNews(title.trim(), content.trim());
 
@@ -92,7 +85,7 @@ const exportColumns: { key: keyof ReportRow; label: string; width?: number }[] =
   [
     { key: "id", label: "ลำดับ", width: 10 },
 
-    { key: "date", label: "วันที่", width: 22 },
+    { key: "date", label: "วันที่/เวลา", width: 22 },
 
     { key: "title", label: "หัวข้อข่าว", width: 42 },
 
@@ -251,24 +244,39 @@ export default function NewsReportPage() {
     category: "",
   });
 
-  const sortColumns: SortColumn[] = [
-    { key: "id", label: "ลำดับ" },
-    { key: "date", label: "วันที่" },
-    { key: "title", label: "หัวข้อข่าว" },
-    { key: "source", label: "แหล่งข่าว" },
-  ];
+  const [sortColumns, setSortColumns] =
+    useState<SortColumn[]>([]);
 
-  const [sortState, setSortState] = useState<SortState>({
-    column: "id",
-    direction: "asc",
-  });
+  const [sortColumn, setSortColumn] =
+    useState<string>("id");
+
+  const fetchSortColumns = async () => {
+    try {
+      const res = await fetch("/api/news");
+      const data = await res.json();
+
+      console.log(data);
+
+      setSortColumns(
+        data.sortColumns || []
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSortColumns();
+  }, []);
+
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc"); // ยังคงใช้ state เดิมสำหรับทิศทางการเรียง
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 30;
 
   // Reset to first page when filtering or sorting changes
-  useEffect(() => { setCurrentPage(1); }, [searchTerm, sortState, selectedStartDateISO, days]);
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, sortColumn, sortOrder, selectedStartDateISO, days]);
 
   const fetchNews = async () => {
     try {
@@ -364,17 +372,15 @@ export default function NewsReportPage() {
         );
       })
       .sort((a, b) => {
-        const valueA = a[sortState.column as keyof ReportRow];
-        const valueB = b[sortState.column as keyof ReportRow];
+        const valueA =
+          a[sortColumn as keyof ReportRow];
+
+        const valueB =
+          b[sortColumn as keyof ReportRow];
 
         let compareResult = 0;
 
-        // Special handling for date column
-        if (sortState.column === "date") {
-          compareResult =
-            parseThaiDate(String(valueA)).getTime() -
-            parseThaiDate(String(valueB)).getTime();
-        } else if (
+        if (
           typeof valueA === "number" &&
           typeof valueB === "number"
         ) {
@@ -386,11 +392,11 @@ export default function NewsReportPage() {
           );
         }
 
-        return sortState.direction === "asc"
+        return sortOrder === "asc"
           ? compareResult
           : -compareResult;
       });
-  }, [newsRows, searchTerm, sortState, startDate, endDate]);
+  }, [newsRows, searchTerm, sortOrder, startDate, endDate, sortColumn]);
 
   const paginatedRows = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -848,37 +854,6 @@ export default function NewsReportPage() {
       </div>
     );
 
-  // ฟังก์ชันสำหรับจัดการการคลิกที่ header เพื่อเรียงลำดับ
-  const handleHeaderClick = (columnKey: string) => {
-    setSortState((prevState) => {
-      // ถ้าคลิกคอลัมน์เดิม ให้สลับทิศทาง
-      if (prevState.column === columnKey) {
-        if (prevState.direction === "asc") {
-          return { column: columnKey, direction: "desc" };
-        } else if (prevState.direction === "desc") {
-          return { column: columnKey, direction: null };
-        } else {
-          return { column: columnKey, direction: "asc" };
-        }
-      }
-      // ถ้าคลิกคอลัมน์ใหม่ ให้เรียงลำดับจากน้อยไปมาก
-      return { column: columnKey, direction: "asc" };
-    });
-  };
-
-  // ฟังก์ชันสำหรับแสดง icon ของการเรียงลำดับ
-  const getSortIcon = (columnKey: string) => {
-    if (sortState.column !== columnKey) {
-      return <ArrowUpIcon className="w-4 h-4 opacity-40" />;
-    }
-    if (sortState.direction === "asc") {
-      return <ArrowUpIcon className="w-4 h-4" />;
-    }
-    if (sortState.direction === "desc") {
-      return <ArrowDownIcon className="w-4 h-4" />;
-    }
-    return <ArrowDownIcon className="w-4 h-4 opacity-40" />;
-  };
 
   return (
 
@@ -953,6 +928,7 @@ export default function NewsReportPage() {
 
                 {/* ส่วนตัวเลือกวันที่ */}
                 <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full text-sm text-slate-600">
+                  <span className="text-sm font-medium text-slate-700">จากวันที่:</span>
                   <ThaiDatePicker
                     id="filterStartDate"
                     label=""
@@ -1007,14 +983,20 @@ export default function NewsReportPage() {
                     {sortColumns.map((column, index) => (
                       <th
                         key={`${column.key}-${index}`}
-                        onClick={() => handleHeaderClick(column.key)}
-                        className="px-4 py-3 text-center cursor-pointer select-none hover:bg-slate-100 transition group"
-                        title={`คลิกเพื่อเรียงลำดับตามคอลัมน์นี้`}
+                        onClick={() => {
+                          if (sortColumn === "date") {
+                            compareResult =
+                              parseThaiDate(a.date).getTime() -
+                              parseThaiDate(b.date).getTime();
+
+                          } else {
+                            setSortColumn(column.key);
+                            setSortOrder("asc");
+                          }
+                        }}
+                        className="px-4 py-3 text-center cursor-pointer select-none"
                       >
-                        <div className="flex items-center justify-center gap-2">
-                          <span>{column.label}</span>
-                          {getSortIcon(column.key)}
-                        </div>
+                        {column.label}
                       </th>
                     ))}
 
@@ -1218,8 +1200,8 @@ export default function NewsReportPage() {
                         </tr>
                       ))}
 
-                      <tr className="border-t border-slate-300 bg-slate-50 font-semibold">
-                        <td colSpan={2} className="px-3 py-3 text-center">
+                      <tr className="border-t border-slate-300 bg-slate-100 font-semibold">
+                        <td className="px-3 py-3 text-center" colSpan={2}>
                           รวมทั้งหมด
                         </td>
 
@@ -1228,12 +1210,12 @@ export default function NewsReportPage() {
                             key={cat.key}
                             className="px-3 py-3 text-center"
                           >
-                            {summary.totals[cat.key] || 0}
+                            {summary.totals[cat.key] || "-"}
                           </td>
                         ))}
 
                         <td className="px-3 py-3 text-center">
-                          {summary.totals.total || 0}
+                          {summary.totals.total || "-"}
                         </td>
                       </tr>
                     </tbody>
@@ -1244,6 +1226,219 @@ export default function NewsReportPage() {
           </div>
         </div>
       </div>
-    </div>
+      {
+        isCreateNewsModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+            <div className="w-full max-w-2xl rounded-3xl bg-white shadow-xl">
+              <div className="border-b border-slate-200 px-6 py-4">
+                <h3 className="text-lg font-semibold">
+                  {selectedNews ? "แก้ไขรายการข่าว" : "เพิ่มรายการข่าว"}
+                </h3>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  {selectedNews ? "แก้ไขข้อมูลข่าวสารที่มีอยู่แล้วในระบบ" : "กรอกข้อมูลข่าวเพื่อเพิ่มลงในตารางและสรุปอัตโนมัติ"}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 px-6 py-5 md:grid-cols-2">
+                <label className="block">
+                  <span className="text-sm font-medium text-slate-700">
+                    วันที่
+                  </span>
+
+                  <div className="mt-2">
+                    <ThaiDatePicker
+                      id="reportDate"
+                      label=""
+                      value={newsForm.reportDate}
+                      onChange={(value) =>
+                        setNewsForm((prev) => ({ ...prev, reportDate: value }))
+                      }
+                    />
+                  </div>
+                </label>
+                <label className="block">
+                  <span className="text-sm font-medium text-slate-700">
+                    หน่วยงาน
+                  </span>
+
+                  <select
+                    value={newsForm.source}
+                    onChange={(event) =>
+                      setNewsForm((prev) => ({
+                        ...prev,
+                        source: event.target.value,
+                      }))
+                    }
+                    className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                  >
+                    <option value="">เลือกหน่วยงาน</option>
+                    {sources.map((source) => (
+                      <option
+                        key={source.source_id}
+                        value={source.source_id}
+                      >
+                        {source.source_name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block md:col-span-2">
+                  <span className="text-sm font-medium text-slate-700">
+                    หัวข้อข่าว
+                  </span>
+                  <input
+                    type="text"
+                    value={newsForm.title}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setNewsForm((prev) => ({
+                        ...prev,
+                        title: value,
+                        category: String(categoryCodeToIdMap[detectNewsCategory(value, prev.content)] || ""),
+                      }));
+                    }}
+                    placeholder="กรอกหัวข้อข่าวสั้นๆ สำหรับแสดงในตาราง"
+                    className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                  />
+                </label>
+
+                <label className="block md:col-span-2">
+                  <span className="text-sm font-medium text-slate-700">
+                    เนื้อหาข่าว
+                  </span>
+
+                  <textarea
+                    value={newsForm.content}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setNewsForm((prev) => ({
+                        ...prev,
+                        content: value,
+                        category: String(categoryCodeToIdMap[detectNewsCategory(prev.title, value)] || ""),
+                      }));
+                    }}
+                    placeholder="กรอกเนื้อหาข่าว"
+                    rows={4}
+                    className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 resize-none"
+                  />
+                </label>
+
+                <label className="block md:col-span-2">
+                  <span className="text-sm font-medium text-slate-700">
+                    ลิงก์ข่าว (URL)
+                  </span>
+                  <input
+                    type="url"
+                    value={newsForm.link}
+                    onChange={(event) =>
+                      setNewsForm((prev) => ({ ...prev, link: event.target.value }))
+                    }
+                    placeholder="https://example.com/news/123"
+                    className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="text-sm font-medium text-slate-700">
+                    หมวดข่าว
+                  </span>
+
+                  <select
+                    disabled
+                    value={newsForm.category}
+                    className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-500 outline-none cursor-not-allowed"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat.category_id} value={cat.category_id}>
+                        {cat.category_name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 rounded-b-3xl">
+                <button
+                  onClick={() => setIsCreateNewsModalOpen(false)}
+                  className="rounded-full border border-slate-300 bg-white px-5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={handleCreateNews}
+                  className="rounded-full bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
+                >
+                  บันทึก
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Modal สำหรับแสดงรายละเอียดข่าว (View Mode) */}
+      {
+        isViewModalOpen && selectedNews && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+            <div className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-xl">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                <h3 className="text-lg font-semibold">รายละเอียดข่าว</h3>
+                <button onClick={() => setIsViewModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="space-y-4 text-left">
+                <div>
+                  <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">หัวข้อข่าว</label>
+                  <p className="text-slate-700 font-medium text-lg mt-1">{selectedNews.title}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">วันที่/เวลา</label>
+                    <p className="text-slate-700 mt-1">{selectedNews.date}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">หน่วยงาน</label>
+                    <p className="text-slate-700 mt-1">{selectedNews.source}</p>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">หมวดหมู่</label>
+                  <div className="mt-1">
+                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+                      {categoryLabelMap[
+                        selectedNews.category
+                      ]}
+                    </span>
+                  </div>
+                </div>
+                {selectedNews.link && (
+                  <div>
+                    <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">ลิงก์ข่าว</label>
+                    <a
+                      href={selectedNews.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-blue-600 hover:underline truncate mt-1 text-sm"
+                    >
+                      {selectedNews.link}
+                    </a>
+                  </div>
+                )}
+              </div>
+              <div className="mt-8 flex justify-end">
+                <button onClick={() => setIsViewModalOpen(false)} className="rounded-full bg-slate-100 px-6 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 transition">
+                  ปิดหน้าต่าง
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 }
