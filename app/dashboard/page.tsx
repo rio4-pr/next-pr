@@ -69,17 +69,6 @@ export default function DashboardPage() {
             </div>
         );
 
-    // const currentFY =
-    //     new Date().getMonth() >= 9
-    //         ? new Date().getFullYear() + 544
-    //         : new Date().getFullYear() + 543;
-
-    // const fiscalYears = Array.from(
-    //     { length: 5 },
-    //     (_, i) => currentFY - i
-    // );
-
-
     return (
         <div className="flex">
 
@@ -108,12 +97,12 @@ export default function DashboardPage() {
                             icon={<BriefcaseIcon className="w-10 h-10" />}
                         />
                         <Card
-                            title="ขอใช้รถ(แบบ3)"
+                            title="ขอใช้ยานพาหนะส่วนกลาง(แบบ3)"
                             value={data.summary.vehicle.toLocaleString()}
                             icon={<TruckIcon className="w-10 h-10" />}
                         />
                         <Card
-                            title="ค่าใช้จ่าย(ห้อง ปท.ชป.4)"
+                            title="ค่าใช้จ่าย(ห้องปท.ชป.4)"
                             value={data.summary.expense.toLocaleString()}
                             icon={<BanknotesIcon className="w-10 h-10" />}
                         />
